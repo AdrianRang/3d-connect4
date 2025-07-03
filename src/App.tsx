@@ -41,111 +41,51 @@ function Board({state, move}: {state: number[][], move: any}) {
   )
 }
 
-export default function App() {
-  const [state, setState] = useState<number[][]>(
-    [
-      [0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0],
-    ]
-  )
+export default function App() { 
+  let emptyState: number[][][] = [];
 
+  for (let z = 0; z < 7; z++) {
+    const layer: number[][] = [];
+    for (let y = 0; y < 6; y++) {
+      const row: number[] = [];
+      for (let x = 0; x < 7; x++) {
+        row.push(0);
+      }
+      layer.push(row);
+    }
+    emptyState.push(layer);
+  }
+
+  console.log(emptyState)
+
+  const [state, setState] = useState<number[][][]>(emptyState)
+  const [z, setZ] = useState(0)
   const [currPlayer, setPlayer] = useState(false)
 
   function move(col: number) {
-    if(state[0][col] == 1 || state[0][col] == 2 || checkFourInARow(state) !== undefined) return;
+    if(state[z][0][col] == 1 || state[z][0][col] == 2 || checkFourInARow(state) !== undefined) return;
     
     let row = 0;
     
     for(; row < 5; row++) {
-      if (state[row+1][col] == 1 || state[row+1][col] == 2) {
+      if (state[z][row+1][col] == 1 || state[z][row+1][col] == 2) {
         break;
       }
     }
     
     setState(prevState => {
       const newState = prevState.map(rowArr => [...rowArr]);
-      newState[row][col] = currPlayer ? 1 : 2;
+      newState[z][row][col] = currPlayer ? 1 : 2;
       return newState;
     });
     
     setPlayer(!currPlayer)
-
-    // Check if won
-    // Horizontal
-    // let count = 0;
-    // let curr=0;
-    // for(let r = 0; r < 6; r++) {
-    //   for(let c = 0; c < 7; c++) {
-    //     if(count == 3) {setWinner(curr==1?'red h':'yellow h'); return;}
-
-    //     if(state[r][c] == curr && state[r][c] !== 0) count++;
-    //     else if(count == 0) count = 0;
-    //     else {
-    //       curr = state[r][c];
-    //       count = 0;
-    //     }
-    //   }
-    // }
-
-    // // Vertical
-    // count=0;
-    // curr=0;
-    // for(let c = 0; c < 7; c++) {
-    //   for(let r = 0; r < 6; r++) {
-    //     if(count == 3) {setWinner(curr==1?'red v':'yellow v'); return;}
-
-    //     if(state[r][c] == curr && state[r][c] !== 0) count++;
-    //     else {
-    //       curr = state[r][c];
-    //       count = 0;
-    //     }
-    //   }
-    // }
-
-    // // Diagonal (/)
-    // count=0
-    // curr=0
-
-    // const diags = [
-    //   [3, 0],
-    //   [4, 0],
-    //   [5, 0],
-    //   [5, 1],
-    //   [5, 2],
-    //   [5, 3]
-    // ]
-
-    // for(let i = 0; i < diags.length; i++) {
-    //   let diag = diags[i];
-    //   while(diag[0] < 6 && diag[1] >= 0) {
-    //     console.log(state[5])
-        
-    //     if(state[diag[0]][diag[1]] == curr && curr !== 0) count++;
-    //     else {
-    //       curr = state[diag[0]][diag[1]];
-    //       count = 0;
-    //     }
-        
-    //     if(count == 3) {setWinner((curr==1?'red diag':'yellow diag')+i); return;}
-
-    //     diag[0] = diag[0]+1;
-    //     diag[1] = diag[1]-1;
-    //   }
-    //   count = 0
-    // }
-
-    // // Diagonal (\)
-    // count=0
-    // curr=0
   }
 
   return (
     <>
-      <Board state={state} move={move}/>
+      <input type="number" min={1} max={7} step={1} value={z+1} onChange={event=>setZ(parseInt(event.target.value)-1)}/> <span>{z+1}</span>
+      <Board state={state[z]} move={move}/>
       {
         checkFourInARow(state) && (
           <h2>{checkFourInARow(state)} won!</h2>
@@ -159,38 +99,52 @@ export default function App() {
 
 
 //? CHAT GPT (Edited)
-function checkFourInARow(board: number[][]) {
+function checkFourInARow(board: number[][][]) {
   const rows = 6;
   const cols = 7;
+  const depth = 7;
 
   const directions = [
-    [0, 1],  // Right
-    [1, 0],  // Down
-    [1, 1],  // Diagonal Down-Right
-    [1, -1], // Diagonal Down-Left
+  //[y, x, z]
+    [0, 1, 0],  // Right
+    [1, 0, 0],  // Down
+    [1, 1, 0],  // Diagonal Down-Right
+    [1, -1, 0], // Diagonal Down-Left
+    [0, 0, 1],  // Through
+    [0, 1, 1],  // Right + Through (XY plane diagonal)
+    [1, 0, 1],  // Down + Through (YZ plane diagonal)
+    [-1, 0, 1], // Up + Through (YZ plane diagonal)
+    [1, 1, 1],  // Diagonal Down-Right + Through (XYZ diagonal)
+    [-1, 1, 1],  // Diagonal Up-Right + Through (XYZ diagonal)
+    [1, -1, 1], // Diagonal Down-Left + Through (X(-Y)Z diagonal)
+    [-1, -1, 1], // Diagonal Up-Left + Through (X(-Y)Z diagonal)
   ];
 
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      const cell = board[row][col];
-      if (cell !== 1 && cell !== 2) continue;
-
-      for (let [dx, dy] of directions) {
-        let count = 1;
-        for (let step = 1; step < 4; step++) {
-          const newRow = row + dx * step;
-          const newCol = col + dy * step;
-          if (
-            newRow < 0 || newRow >= rows ||
-            newCol < 0 || newCol >= cols ||
-            board[newRow][newCol] !== cell
-          ) {
-            break;
+  for (let z = 0; z < depth; z++) {
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const cell = board[z][row][col];
+        if (cell !== 1 && cell !== 2) continue;
+        
+        for (let [dx, dy, dz] of directions) {
+          let count = 1;
+          for (let step = 1; step < 4; step++) {
+            const newRow = row + dx * step;
+            const newCol = col + dy * step;
+            const newZ = z + dz * step
+            if (
+              newRow < 0 || newRow >= rows ||
+              newCol < 0 || newCol >= cols ||
+              newZ < 0 || newCol >= depth  ||
+              board[newZ][newRow][newCol] !== cell
+            ) {
+              break;
+            }
+            count++;
           }
-          count++;
-        }
-        if (count === 4) {
-          return cell == 2 ? 'yellow' : 'red'; // Found 4 in a row
+          if (count === 4) {
+            return cell == 2 ? 'yellow' : 'red'; // Found 4 in a row
+          }
         }
       }
     }
