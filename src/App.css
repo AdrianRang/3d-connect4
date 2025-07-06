@@ -5,7 +5,7 @@ html {
 .place {
   background-color: #1D62F4;
   aspect-ratio: 1/1;
-  width: 6vw;
+  width: 5vw;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -13,7 +13,7 @@ html {
 }
 
 .piece {
-  border-radius: 2vw;
+  border-radius: 1.5vw;
   aspect-ratio: 1;
   width: 80%;
   background-color: white;

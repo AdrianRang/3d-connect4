@@ -1,5 +1,39 @@
 import React, { useState } from 'react';
 import './App.css';
+import { Range, Direction } from "react-range";
+
+function Slider({setVal, max}:{setVal: any, max: number}) {
+  const [values, setValues] = useState([0])
+
+  return (
+    <Range label='' step={1} min={0} max={max} values={values} onChange={(v) => {setVal(v[0]); setValues(v)}} direction={Direction.Up}
+        renderTrack={
+          ({props, children, isDragged})=>(<div
+          {...props}
+          style={{
+            ...props.style,
+            height: "100%",
+            width: "6px",
+            backgroundColor: isDragged ? "#999" : "#ccc",
+          }}
+        >
+          {children}
+        </div>)} 
+        renderThumb={({props, isDragged})=>(
+          <div
+          {...props}
+          key={props.key}
+          style={{
+            ...props.style,
+            height: "10px",
+            width: "20px",
+            backgroundColor: !isDragged ? "#999" : 'red',
+            borderRadius: '2px'
+          }}
+        />
+      )}/>
+  )
+}
 
 function Place({state}: {state: number}) {
   let stateStyle;
@@ -25,8 +59,8 @@ function Place({state}: {state: number}) {
 }
 
 function Board({state, move}: {state: number[][], move: any}) {
-  const width = 7;
-  const height = 6;
+  const width = state[0].length;
+  const height = state.length;
 
   return (
     <div className='board'>
@@ -60,22 +94,24 @@ export default function App() {
 
   const [state, setState] = useState<number[][][]>(emptyState)
   const [z, setZ] = useState(0)
+  const [x, setX] = useState(0)
+  const [y, setY] = useState(0)
   const [currPlayer, setPlayer] = useState(false)
 
-  function move(col: number) {
-    if(state[z][0][col] == 1 || state[z][0][col] == 2 || checkFourInARow(state) !== undefined) return;
+  function move(x: number, y: number, z: number) {
+    if(state[z][y][x] == 1 || state[z][y][x] == 2 || checkFourInARow(state) !== undefined) return;
     
     let row = 0;
     
     for(; row < 5; row++) {
-      if (state[z][row+1][col] == 1 || state[z][row+1][col] == 2) {
+      if (state[z][row+1][x] == 1 || state[z][row+1][x] == 2) {
         break;
       }
     }
     
     setState(prevState => {
       const newState = prevState.map(rowArr => [...rowArr]);
-      newState[z][row][col] = currPlayer ? 1 : 2;
+      newState[z][row][x] = currPlayer ? 1 : 2;
       return newState;
     });
     
@@ -84,17 +120,89 @@ export default function App() {
 
   return (
     <>
-      <input type="number" min={1} max={7} step={1} value={z+1} onChange={event=>setZ(parseInt(event.target.value)-1)}/> <span>{z+1}</span>
-      <Board state={state[z]} move={move}/>
+    <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap:'10px'}}>
+    <div style={{display: 'flex', flexDirection: 'row-reverse'}}>
+      <Slider setVal={setZ} max={6}/>
+      <Board state={state[z]} move={(col: number)=>move(col, 0, z)}/>
+    </div>
+    <div style={{display: 'flex', flexDirection: 'row-reverse'}}>
+      <Slider setVal={setX} max={6}/>
+      <Board state={yState(state)[x]} move={(col: number)=>move(x, 0, col)}/>
+    </div>
+    <div style={{display: 'flex', flexDirection: 'row-reverse'}}>
+      <Slider setVal={setY} max={5}/>
+      <Board state={zState(state)[y]} move={()=>{}}/>
+    </div>
       {
         checkFourInARow(state) && (
           <h2>{checkFourInARow(state)} won!</h2>
         )
       }
       <h4>Next Player:</h4>
-      <div style={{width: '4vw', backgroundColor:currPlayer?'red':'yellow', aspectRatio:1, padding:20, borderRadius:'100%', display:'flex', alignItems:'center', justifyContent:'center', alignContent:'center'}}><b>{currPlayer ? 'Red' : 'Yellow'}</b></div>
+      <div style={{width: '4vw', backgroundColor:currPlayer?'red':'yellow', height: '4vw', padding:20, borderRadius:'100%', display:'flex', alignItems:'center', justifyContent:'center', alignContent:'center'}}><b>{currPlayer ? 'Red' : 'Yellow'}</b></div>
+    </div>
     </>
   );
+}
+
+function yState(state: number[][][]) {
+  const depth = state.length;
+  const height = state[0].length;
+  const width = state[0][0].length;
+
+  let newState: number[][][] = []
+
+  for (let z = 0; z < depth; z++) {
+    const layer: number[][] = [];
+    for (let y = 0; y < height; y++) {
+      const row: number[] = [];
+      for (let x = 0; x < width; x++) {
+        row.push(0);
+      }
+      layer.push(row);
+    }
+    newState.push(layer);
+  }
+
+  for(let z = 0; z < depth; z++) {
+    for(let y = 0; y < height; y++) {
+      for(let x = 0; x < width; x++) {
+        newState[x][y][z] = state[z][y][x]
+      }
+    }
+  }
+
+  return newState;
+}
+
+function zState(state: number[][][]) {
+  const depth = state.length;
+  const height = state[0].length;
+  const width = state[0][0].length;
+
+  let newState: number[][][] = []
+
+  for (let z = 0; z < 6; z++) {
+    const layer: number[][] = [];
+    for (let y = 0; y < 7; y++) {
+      const row: number[] = [];
+      for (let x = 0; x < 7; x++) {
+        row.push(0);
+      }
+      layer.push(row);
+    }
+    newState.push(layer);
+  }
+
+  for(let z = 0; z < depth; z++) {
+    for(let y = 0; y < height; y++) {
+      for(let x = 0; x < width; x++) {
+        newState[y][depth-z-1][x] = state[z][height-y-1][x]
+      }
+    }
+  }
+
+  return newState;
 }
 
 
@@ -102,7 +210,7 @@ export default function App() {
 function checkFourInARow(board: number[][][]) {
   const rows = 6;
   const cols = 7;
-  const depth = 7;
+  const depth = board.length;
 
   const directions = [
   //[y, x, z]
@@ -135,7 +243,7 @@ function checkFourInARow(board: number[][][]) {
             if (
               newRow < 0 || newRow >= rows ||
               newCol < 0 || newCol >= cols ||
-              newZ < 0 || newCol >= depth  ||
+              newZ < 0 || newZ >= depth  ||
               board[newZ][newRow][newCol] !== cell
             ) {
               break;
