@@ -1,148 +1,12 @@
 import React, { useState } from 'react';
 import './App.css';
-import { Range, Direction } from "react-range";
+import { Button, ButtonBlue } from './UiverseElements';
+import {Slider, Board} from './Elements';
+import { useNavigate } from 'react-router-dom';
+import sleep from 'sleep-promise';
 
-function Slider({setVal, max}:{setVal: any, max: number}) {
-  const [values, setValues] = useState([0])
-
-  return (
-    <Range label='' step={1} min={0} max={max} values={values} onChange={(v) => {setVal(v[0]); setValues(v)}} direction={Direction.Up}
-        renderTrack={
-          ({props, children, isDragged})=>(<div
-          {...props}
-          style={{
-            ...props.style,
-            height: "100%",
-            width: "6px",
-            backgroundColor: isDragged ? "#999" : "#ccc",
-          }}
-        >
-          {children}
-        </div>)} 
-        renderThumb={({props, isDragged})=>(
-          <div
-          {...props}
-          key={props.key}
-          style={{
-            ...props.style,
-            height: "10px",
-            width: "20px",
-            backgroundColor: !isDragged ? "#999" : 'red',
-            borderRadius: '2px'
-          }}
-        />
-      )}/>
-  )
-}
-
-function Place({state}: {state: number}) {
-  let stateStyle;
-  switch (state) {
-    case 1:
-      stateStyle = { backgroundColor: 'red' };
-      break;
-    case 2:
-      stateStyle = { backgroundColor: 'yellow' };
-      break;
-    case 3: 
-      stateStyle = { backgroundColor: 'rgb(255, 200, 200)'}
-      break;
-    default:
-      stateStyle = {};
-  }
-
-  return (
-    <div className='place'>
-      <div className='piece' style={stateStyle}></div>
-    </div>
-  )
-}
-
-function Board({state, move}: {state: number[][], move: any}) {
-  const width = state[0].length;
-  const height = state.length;
-
-  return (
-    <div className='board'>
-      {Array.from({ length: width }).map((_, col) => (
-      <div className='column' onMouseDown={() => move(col)}>
-        {Array.from({ length: height }).map((_, row) => (
-        <Place state={state[row][col]}/>
-        ))}
-      </div>
-      ))}
-    </div>
-  )
-}
-
-export default function App() { 
-  let emptyState: number[][][] = [];
-
-  for (let z = 0; z < 7; z++) {
-    const layer: number[][] = [];
-    for (let y = 0; y < 6; y++) {
-      const row: number[] = [];
-      for (let x = 0; x < 7; x++) {
-        row.push(0);
-      }
-      layer.push(row);
-    }
-    emptyState.push(layer);
-  }
-
-  console.log(emptyState)
-
-  const [state, setState] = useState<number[][][]>(emptyState)
-  const [z, setZ] = useState(0)
-  const [x, setX] = useState(0)
-  const [y, setY] = useState(0)
-  const [currPlayer, setPlayer] = useState(false)
-
-  function move(x: number, y: number, z: number) {
-    if(state[z][y][x] == 1 || state[z][y][x] == 2 || checkFourInARow(state) !== undefined) return;
-    
-    let row = 0;
-    
-    for(; row < 5; row++) {
-      if (state[z][row+1][x] == 1 || state[z][row+1][x] == 2) {
-        break;
-      }
-    }
-    
-    setState(prevState => {
-      const newState = prevState.map(rowArr => [...rowArr]);
-      newState[z][row][x] = currPlayer ? 1 : 2;
-      return newState;
-    });
-    
-    setPlayer(!currPlayer)
-  }
-
-  return (
-    <>
-    <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap:'10px'}}>
-    <div style={{display: 'flex', flexDirection: 'row-reverse'}}>
-      <Slider setVal={setZ} max={6}/>
-      <Board state={state[z]} move={(col: number)=>move(col, 0, z)}/>
-    </div>
-    <div style={{display: 'flex', flexDirection: 'row-reverse'}}>
-      <Slider setVal={setX} max={6}/>
-      <Board state={yState(state)[x]} move={(col: number)=>move(x, 0, col)}/>
-    </div>
-    <div style={{display: 'flex', flexDirection: 'row-reverse'}}>
-      <Slider setVal={setY} max={5}/>
-      <Board state={zState(state)[y]} move={()=>{}}/>
-    </div>
-      {
-        checkFourInARow(state) && (
-          <h2>{checkFourInARow(state)} won!</h2>
-        )
-      }
-      <h4>Next Player:</h4>
-      <div style={{width: '4vw', backgroundColor:currPlayer?'red':'yellow', height: '4vw', padding:20, borderRadius:'100%', display:'flex', alignItems:'center', justifyContent:'center', alignContent:'center'}}><b>{currPlayer ? 'Red' : 'Yellow'}</b></div>
-    </div>
-    </>
-  );
+function formatCol(col: number[]) {
+  return '#' + col.map(x => x.toString(16).padStart(2, '0')).join('');
 }
 
 function yState(state: number[][][]) {
@@ -205,7 +69,6 @@ function zState(state: number[][][]) {
   return newState;
 }
 
-
 //? CHAT GPT (Edited)
 function checkFourInARow(board: number[][][]) {
   const rows = 6;
@@ -222,6 +85,7 @@ function checkFourInARow(board: number[][][]) {
     [0, 1, 1],  // Right + Through (XY plane diagonal)
     [1, 0, 1],  // Down + Through (YZ plane diagonal)
     [-1, 0, 1], // Up + Through (YZ plane diagonal)
+    [0, -1, 1], // Up + Through (YZ plane diagonal)
     [1, 1, 1],  // Diagonal Down-Right + Through (XYZ diagonal)
     [-1, 1, 1],  // Diagonal Up-Right + Through (XYZ diagonal)
     [1, -1, 1], // Diagonal Down-Left + Through (X(-Y)Z diagonal)
@@ -259,4 +123,127 @@ function checkFourInARow(board: number[][][]) {
   }
 
   return undefined; // No 4 in a row found
+}
+
+export default function App() { 
+  let emptyState: number[][][] = [];
+
+  for (let z = 0; z < 7; z++) {
+    const layer: number[][] = [];
+    for (let y = 0; y < 6; y++) {
+      const row: number[] = [];
+      for (let x = 0; x < 7; x++) {
+        row.push(0);
+      }
+      layer.push(row);
+    }
+    emptyState.push(layer);
+  }
+
+  const [state, setState] = useState<number[][][]>(emptyState)
+  const [z, setZ] = useState(0)
+  const [x, setX] = useState(0)
+  const [y, setY] = useState(0)
+  const [currPlayer, setPlayer] = useState(false)
+  const [cols, setCols] = useState([[255, 255, 0], [184, 134, 11]])
+  
+  const navigate = useNavigate();
+
+  const yellows = [[255, 255, 0], [184, 134, 11]];
+  const reds = [[255, 0 , 0], [139, 0, 0]];
+  const animDuration = 200; // ms
+  let animStartTime = 0;
+
+  function move(x: number, y: number, z: number) {
+    if(state[z][y][x] == 1 || state[z][y][x] == 2 || checkFourInARow(state) !== undefined) return;
+    
+    let row = 0;
+    
+    for(; row < 5; row++) {
+      if (state[z][row+1][x] == 1 || state[z][row+1][x] == 2) {
+        break;
+      }
+    }
+    
+    setState(prevState => {
+      const newState = prevState.map(rowArr => [...rowArr]);
+      newState[z][row][x] = currPlayer ? 1 : 2;
+      return newState;
+    });
+
+    const prevPlayer = currPlayer; // Capture current player before updating
+    setPlayer(!currPlayer)
+    // setCols(currPlayer ? yellows : reds)
+    animStartTime = new Date().getTime();
+    animate(!prevPlayer); // Pass the NEXT player to animate (opposite of prevPlayer)
+  }
+  function animate(player: boolean) {
+    function step() {
+      const now = new Date().getTime();
+      const prog = Math.min((now - animStartTime) / animDuration, 1);
+      
+      // Get current colors and target colors
+      const currentColors = cols;
+      const targetColors = player ? reds : yellows;
+      
+      // Interpolate between current and target colors
+      const r = (targetColors[0][0] - currentColors[0][0]) * prog + currentColors[0][0];
+      const g = (targetColors[0][1] - currentColors[0][1]) * prog + currentColors[0][1];
+      const b = (targetColors[0][2] - currentColors[0][2]) * prog + currentColors[0][2];
+
+      const r1 = (targetColors[1][0] - currentColors[1][0]) * prog + currentColors[1][0];
+      const g1 = (targetColors[1][1] - currentColors[1][1]) * prog + currentColors[1][1];
+      const b1 = (targetColors[1][2] - currentColors[1][2]) * prog + currentColors[1][2];
+      
+      setCols([[Math.floor(r), Math.floor(g),Math.floor(b)], [Math.floor(r1), Math.floor(g1),Math.floor(b1)]]);
+
+      if (prog < 1) {
+        requestAnimationFrame(step);
+      } else { 
+        setCols(targetColors)
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  return (
+    <>
+    <div style={{backgroundImage: 'radial-gradient(' + formatCol(cols[0]) + ',' + formatCol(cols[1]) + ')', position: 'fixed', zIndex: '-1', backgroundSize: 'cover', inset: 0, transitionDuration: '0.2s'}} />
+    {
+      checkFourInARow(state) && (
+        <div style={{position: 'fixed', width: '100%', height:'100%', zIndex:'2', backgroundColor:'rgba(0.5,0.5,0.5,0.5)', inset:0, display:'flex', justifyContent:'center',alignItems:'center', pointerEvents:'none', flexDirection:'column'}}>
+          <h2 style={{color:'white'}}>{checkFourInARow(state)} won!</h2>
+          <Button message='Play Again!' onClick={()=>{window.location.reload()}}/>
+        </div>
+      )
+    }
+    <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap:'10px', justifyContent: 'space-evenly'}}>
+    <div>
+      <span>Front to Back</span>
+      <div style={{display: 'flex', flexDirection: 'row-reverse', height:'95%'}}>
+        <Slider setVal={setZ} max={6}/>
+        <Board state={state[z]} move={(col: number)=>move(col, 0, z)}/>
+      </div>
+    </div>
+    <div>
+      <span>Side to side</span>
+      <div style={{display: 'flex', flexDirection: 'row-reverse', height:'95%'}}>
+        <Slider setVal={setX} max={6}/>
+        <Board state={yState(state)[x]} move={(col: number)=>move(x, 0, col)}/>
+      </div>
+    </div>
+    <div>
+      <span>Top to Bottom</span>
+      <div style={{display: 'flex', flexDirection: 'row-reverse', height:'96%'}}>
+        <Slider setVal={setY} max={5}/>
+        <Board state={zState(state)[y]} move={()=>{}}/>
+      </div>
+    </div>
+    </div>
+    <center>
+      <div style={{height:'20px'}}/>
+    <ButtonBlue message="How it works" onClick={() => navigate("/tutorial")}/>
+    </center>
+    </>
+  );
 }

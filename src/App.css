@@ -37,3 +37,12 @@ html {
 * {
   /* border: 1px dotted red; */
 }
+
+h1 {
+  font-family: 'Lemon Milk';
+}
+
+@font-face {
+  font-family: 'Lemon Milk';
+  src: url('../public/LEMONMILK-MediumItalic.otf');
+}
