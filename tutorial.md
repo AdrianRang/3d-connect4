@@ -11,13 +11,13 @@ In order to be able to access all of the game (even if its behind something else
 
 ## The Controls
 When you start the game you'll see 3 boards, these are just different visualizations of the same 3D game.  <br/><br/>
-<img src="/game.png" alt="game image" width="400px"/>
-<img src="/cube.png" alt="cube image" width="400px"/> <br/><br/>
+<img src="https://ranadr.me/3d-connect4/game.png" alt="game image" width="400px"/>
+<img src="https://ranadr.me/3d-connect4/cube.png" alt="cube image" width="400px"/> <br/><br/>
 The right board corresponds to the right face, the left to the left, and the bottom to the bottom
 Using the scrollbar you can select at what depth you are playing.  <br/> <br/>
-<img src="/cube-selected.png" alt="cube selected" width="400px"/> <br/><br/>
+<img src="https://ranadr.me/3d-connect4/cube-selected.png" alt="cube selected" width="400px"/> <br/><br/>
 To play just click at what row you want to place the piece (on either of the top boards), the backgrund color indicates what player goes next, to change what player you're looking at just move the slider beside the board.
 
 The first Player to Connect 4 Wins!
 
-<a href="/3d-connect4/#/play">Play!</a>
+<a href="https://ranadr.me/3d-connect4/#/play">Play!</a>
