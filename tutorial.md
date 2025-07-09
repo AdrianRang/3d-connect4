@@ -20,4 +20,4 @@ To play just click at what row you want to place the piece (on either of the top
 
 The first Player to Connect 4 Wins!
 
-<a href="/play">Play!</a>
+<a href="/3d-connect4/#/play">Play!</a>
