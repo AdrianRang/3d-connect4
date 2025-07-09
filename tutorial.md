@@ -6,7 +6,7 @@ The classic game of Connect 4 now with 1 extra dimension!
 ## The basics
 This game plays ***just*** like *Connect4* both players take turns dropping a piece unto the board, the first to get four in a line (either vertical, horizontal, or diagonal) wins! 
 The only difference is that in *Connect4 3D* you just play in one more dimension.  
-That is probably confusing *How exactly do you extend a 2D game into 3D?* Simple just put more games behind the original one forming a cube. of *Connec4*.  
+That is probably confusing *How exactly do you extend a 2D game into 3D?* Simple just put more games behind the original one forming a cube. of *Connect4*.  
 In order to be able to access all of the game (even if its behind something else) you have to select which layer you're looking at.
 
 ## The Controls
